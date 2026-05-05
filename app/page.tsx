@@ -242,7 +242,7 @@ export default function Portfolio() {
             borderRadius: 999, marginBottom: 16, letterSpacing: "0.04em",
           }}
         >
-          Available for opportunities
+          
         </div>
 
         <h1
