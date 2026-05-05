@@ -86,6 +86,9 @@ export default function Portfolio() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", message: "" });
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [sendError, setSendError] = useState("");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -808,10 +811,22 @@ export default function Portfolio() {
             {/* Contact form */}
             <form
               autoComplete="off"
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
-                alert("Message sent! I'll get back to you soon.");
-                setForm({ name: "", email: "", message: "" });
+                setSending(true);
+                setSendError("");
+                const res = await fetch("/api/contact", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(form),
+                });
+                setSending(false);
+                if (res.ok) {
+                  setSent(true);
+                  setForm({ name: "", email: "", message: "" });
+                } else {
+                  setSendError("Something went wrong. Please try again.");
+                }
               }}
               style={{ display: "flex", flexDirection: "column", gap: 16 }}
             >
@@ -859,27 +874,30 @@ export default function Portfolio() {
               />
               <button
                 type="submit"
+                disabled={sending}
                 suppressHydrationWarning
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   gap: 8,
-                  background: "#0a0a0a",
+                  background: sending ? "#6b7280" : "#0a0a0a",
                   color: "#fff",
                   padding: "13px 28px",
                   borderRadius: 8,
                   fontWeight: 600,
                   fontSize: 15,
                   border: "none",
-                  cursor: "pointer",
+                  cursor: sending ? "not-allowed" : "pointer",
                   transition: "background 0.2s",
                 }}
-                onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "#2563eb")}
-                onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "#0a0a0a")}
+                onMouseEnter={(e) => { if (!sending) (e.currentTarget as HTMLElement).style.background = "#2563eb"; }}
+                onMouseLeave={(e) => { if (!sending) (e.currentTarget as HTMLElement).style.background = "#0a0a0a"; }}
               >
-                <Send size={16} /> Send Message
+                <Send size={16} /> {sending ? "Sending…" : "Send Message"}
               </button>
+              {sent && <p style={{ color: "#16a34a", fontSize: 14, margin: 0 }}>✓ Message sent! I&apos;ll get back to you soon.</p>}
+              {sendError && <p style={{ color: "#dc2626", fontSize: 14, margin: 0 }}>{sendError}</p>}
             </form>
           </div>
         </div>
